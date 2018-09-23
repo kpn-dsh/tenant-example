@@ -1,4 +1,4 @@
-# KPN-dsh-tenant-example
+# DSH tenant example
 
 This example shows how tenants on the DSH platform should interact with the DSH
 data streams. The particular points to pay attention to are:
@@ -124,11 +124,11 @@ defines the following helpful values:
 
 ## Envelopes on public data streams
 
-Public data streams (the `stream.<something>` streams) have specific requirements with
-respect to the structure of the key and payload values. In essence, the "plain"
-key and payload are wrapped in envelope structures. The envelope structures are
-defined as Protobuf messages. The definition can be found in
-`src/main/proto/envelope.proto`.
+Public data streams (the `stream.<something>` streams) have specific
+requirements with respect to the structure of the key and payload values. In
+essence, the "plain" key and payload are wrapped in envelope structures. The
+envelope structures are defined as Protobuf messages. The definition can be
+found in `src/main/proto/envelope.proto`.
 
 **Note:** at this moment, the DSH platform is in a transition phase where the
 use of envelopes on the public topics is gradually phased in. Right now,
