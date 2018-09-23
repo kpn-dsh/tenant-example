@@ -1,5 +1,5 @@
 {
-  "image": "dataserviceshub-docker-dshdemo1.jfrog.io/kpn-dsh-tenant-example:1.0.1-SNAPSHOT",
+  "image": "dataserviceshub-docker-dshdemo1.jfrog.io/tenant-example:1.0.1-SNAPSHOT",
   "instances": 1,
   "cpus": 0.5,
   "mem": 1024,

@@ -149,7 +149,7 @@ public class Main {
         KeyEnvelope responseKey = wrapKey(String.join("/", splitKey));
         switch (command) {
             case "whoami":
-                String response = "You are: " + identity.getTenant() + "/" + identity.getPublisher();
+                String response = answerId + " says you are: " + identity.getTenant() + "/" + identity.getPublisher();
                 DataEnvelope responseData = wrapData(response, span);
                 producer.send(
                         new ProducerRecord<>(outputTopic, responseKey, responseData));
@@ -222,6 +222,8 @@ public class Main {
         producer = new KafkaProducer<>(producerProps);
     }
 
+    private static String answerId = "tenant-example";
+
     public static void main(String[] args) {
         /* When a container is started on the DSH platform, the MARATHON_APP_ID
          * environment is set. It contains a string that looks like:
@@ -231,6 +233,8 @@ public class Main {
         /* Set our identity. The identity consists of the tenant name and It will be included in the key envelope of every
          * outgoing message. */
         KeyEnvelopeSerializer.setIdentifier(identifier[0], identifier.length > 1 ? identifier[1] : "tenant-example");
+
+        answerId=identifier[0] + "/" + (identifier.length > 1 ? identifier[1] : "tenant-example");
 
         Configuration jaegerCfg = Configuration.fromEnv();
         Configuration.ReporterConfiguration reporterCfg = jaegerCfg.getReporter();
