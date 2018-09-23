@@ -1,0 +1,46 @@
+syntax = "proto3";
+package com.kpn.dsh.messages.common;
+
+option java_package = "com.kpn.dsh.messages.common";
+
+import "google/protobuf/any.proto";
+
+message KeyEnvelope {
+    KeyHeader header = 1;           // header is mandatory on stream topics
+    string key = 2;                 // MQTT topic (minus prefixes) on stream topics
+    reserved 3;                     // deprecated field
+}
+
+message KeyHeader {
+    // identifies the message origin
+    Identity identifier = 1;
+
+    // marks the message as 'retained'
+    // this makes the Latest Value Store keep a copy of the message in memory for later retrieval
+    bool retained = 2;
+
+    // the QOS with wich the message is handled within the system
+    QoS qos = 3;
+}
+
+// identifies the data origin
+message Identity {
+    string  tenant    = 1;
+    string  publisher = 2;
+}
+
+// System QOS identifiers
+enum QoS {
+    BEST_EFFORT  = 0;   // might be dropped in case of resources running low (~ highest throughput)
+    RELIABLE     = 1;   // will *never* be dropped and retried until success (~ lowest throughput)
+}
+
+message DataEnvelope {
+    oneof kind {                      // main payload for data messages;
+                                      // leave empty for DELETE semantics in Latest Value Store
+        bytes payload = 1;
+    }
+
+    map<string, string> tracing = 2; // tracing data: used for passing span contexts between applications
+    // tenant-specific fields are ONLY allowed in the 500-1000 range
+}
