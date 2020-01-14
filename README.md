@@ -161,7 +161,7 @@ for all public data streams.*
 For your convenience, the serializer classes define some utility methods that
 facilitate wrapping of plain keys and payloads in the envelopes:
 - `KeyEnvelopeSerializer.setIdentifier()` is used to set the static identifier
-  (tenant id and publisher id) for every message produced by this container.
+  (tenant id and free-form publisher id) for every message produced by this container.
 - `KeyEnvelopeSerializer.wrap()` wraps a plain string key in an envelope, with
   optional `qos` and `retain` settings (defaults are QoS 0 and non-retained).
 - `DataEnvelopeSerializer.wrap()` wraps a plain byte array payload in a data

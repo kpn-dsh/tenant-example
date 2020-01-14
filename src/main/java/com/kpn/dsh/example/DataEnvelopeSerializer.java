@@ -13,21 +13,13 @@ import static com.kpn.dsh.messages.common.Envelope.DataEnvelope.KindCase.KIND_NO
  * The class also contains some static utility functions that
  * conveniently wrap a plain byte array in an envelope.
  */
-public class DataEnvelopeSerializer extends EnvelopeSerdes implements Serializer<DataEnvelope> {
-    public void configure(Map<String,?> configs, boolean isKey) {
-        super.configure(configs, isKey);
-    }
+public class DataEnvelopeSerializer implements Serializer<DataEnvelope> {
+    public void configure(Map<String,?> configs, boolean isKey) {}
 
     public void close() {}
 
     public byte[] serialize(String topic, DataEnvelope data) {
-        if (isEnvelopedTopic(topic)) {
-            return data.toByteArray();
-        } else {
-            return (KIND_NOT_SET == data.getKindCase())
-                    ? null
-                    : data.getPayload().toByteArray();
-        }
+        return data.toByteArray();
     }
 
     /**
@@ -39,12 +31,12 @@ public class DataEnvelopeSerializer extends EnvelopeSerdes implements Serializer
     public static DataEnvelope wrap(byte[] data) {
         if (null == data) {
             return DataEnvelope.newBuilder()
-                    .clearKind()
-                    .build();
+                .clearKind()
+                .build();
         } else {
             return DataEnvelope.newBuilder()
-                    .setPayload(ByteString.copyFrom(data))
-                    .build();
+                .setPayload(ByteString.copyFrom(data))
+                .build();
         }
     }
 
@@ -58,14 +50,14 @@ public class DataEnvelopeSerializer extends EnvelopeSerdes implements Serializer
     public static DataEnvelope wrap(byte[] data, Map<String,String> tracing) {
         if (null == data) {
             return DataEnvelope.newBuilder()
-                    .clearKind()
-                    .putAllTracing(tracing)
-                    .build();
+                .clearKind()
+                .putAllTracing(tracing)
+                .build();
         } else {
             return DataEnvelope.newBuilder()
-                    .setPayload(ByteString.copyFrom(data))
-                    .putAllTracing(tracing)
-                    .build();
+                .setPayload(ByteString.copyFrom(data))
+                .putAllTracing(tracing)
+                .build();
         }
     }
 }

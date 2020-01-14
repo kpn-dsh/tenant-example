@@ -14,20 +14,13 @@ import org.apache.kafka.common.serialization.Serializer;
  * Before using the wrapper functions, make sure to configure the 
  * KeyEnvelopeSerializer by calling the setIdentifier method.
  */
-public class KeyEnvelopeSerializer extends EnvelopeSerdes implements Serializer<KeyEnvelope> {
-    public void configure(Map<String,?> configs, boolean isKey) {
-        super.configure(configs, isKey);
-    }
+public class KeyEnvelopeSerializer implements Serializer<KeyEnvelope> {
+    public void configure(Map<String,?> configs, boolean isKey) {}
 
-    public void close() {
-    }
+    public void close() {}
 
     public byte[] serialize(String topic, KeyEnvelope data) {
-        if (isEnvelopedTopic(topic)) {
-            return data.toByteArray();
-        } else {
-            return data.getKey().getBytes(Charset.forName("UTF-8"));
-        }
+        return data.toByteArray();
     }
 
     static private String tenant = null;
@@ -85,7 +78,7 @@ public class KeyEnvelopeSerializer extends EnvelopeSerdes implements Serializer<
                     .setRetained(retain)
                     .setIdentifier(Identity.newBuilder()
                         .setTenant(KeyEnvelopeSerializer.tenant)
-                        .setPublisher(KeyEnvelopeSerializer.publisher)))
+                        .setFreeForm(KeyEnvelopeSerializer.publisher)))
             .build();
     }
 }

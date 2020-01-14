@@ -26,7 +26,12 @@ message KeyHeader {
 // identifies the data origin
 message Identity {
     string  tenant    = 1;
-    string  publisher = 2;
+    oneof publisher {
+        string free_form   = 2;     // for 'backwards' compatibility or produces not matching the publishers below
+        string user        = 3;     // reserved for MQTT side publishes ('humans')
+        string client      = 4;     // reserved for MQTT side publishes ('devices')
+        string application = 5;     // to be used when producing data from containers
+    }
 }
 
 // System QOS identifiers

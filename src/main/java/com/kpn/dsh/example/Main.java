@@ -149,7 +149,7 @@ public class Main {
         KeyEnvelope responseKey = wrapKey(String.join("/", splitKey));
         switch (command) {
             case "whoami":
-                String response = answerId + " says you are: " + identity.getTenant() + "/" + identity.getPublisher();
+                String response = answerId + " says you are: " + identity.toString();
                 DataEnvelope responseData = wrapData(response, span);
                 producer.send(
                         new ProducerRecord<>(outputTopic, responseKey, responseData));
