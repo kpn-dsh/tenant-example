@@ -12,7 +12,7 @@ set -eux
 # PKI_CONFIG_DIR: Directory to store the jks with the certificates: NEEDS TO BE
 # SET BEFORE CALLING THIS SCRIPT
 
-# KAFKA_CONFIG_HOST: DNS of the PKI: automatically set by mesos
+# DSH_KAFKA_CONFIG_ENDPOINT: DNS of the PKI: automatically set by mesos
 
 # DSH_SECRET_TOKEN: token that can be used to identify against the PKI:
 # automatically set by mesos
@@ -28,9 +28,9 @@ fi
 # make sure the PKI_CONFIG_DIR really exists
 mkdir -p "${PKI_CONFIG_DIR}"
 
-if [ -z "${KAFKA_CONFIG_HOST:-}" ]
+if [ -z "${DSH_KAFKA_CONFIG_ENDPOINT:-}" ]
 then
-        echo "KAFKA_CONFIG_HOST not set"
+        echo "DSH_KAFKA_CONFIG_ENDPOINT not set"
         rm -f ${PKI_CONFIG_DIR}/datastreams.properties
         touch ${PKI_CONFIG_DIR}/datastreams.properties
         exit 0
@@ -71,7 +71,7 @@ DNS=`echo ${MARATHON_APP_ID} | tr "/" "\n" | sed '1!G;h;$!d' |grep -v "^$" |tr "
 echo "${DSH_CA_CERTIFICATE}" > ${PKI_CONFIG_DIR}/ca.crt
 
 # Use ca certificate to request DN needed for csr 
-DN=`curl --cacert ${PKI_CONFIG_DIR}/ca.crt -s "https://${KAFKA_CONFIG_HOST}/dn/${KAFKA_GROUP}/${MESOS_TASK_ID}"`
+DN=`curl --cacert ${PKI_CONFIG_DIR}/ca.crt -s "https://${DSH_KAFKA_CONFIG_ENDPOINT}/dn/${KAFKA_GROUP}/${MESOS_TASK_ID}"`
 
 
 # Bail out if we get back an invalid DN 
@@ -106,7 +106,7 @@ keytool -genkey -dname "${DN}" -alias client -keyalg RSA -keysize 2048 -storepas
 keytool -certreq -alias client -ext san=dns:${DNS} -file ${PKI_CONFIG_DIR}/client.csr -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE}
 
 # Ask PKI to sign the request (need to provide DSH_SECRET_TOKEN)
-curl --cacert ${PKI_CONFIG_DIR}/ca.crt -s -X POST --data-binary @${PKI_CONFIG_DIR}/client.csr -H "X-Kafka-Config-Token: ${DSH_SECRET_TOKEN}" "https://${KAFKA_CONFIG_HOST}/sign/${KAFKA_GROUP}/${MESOS_TASK_ID}" > ${PKI_CONFIG_DIR}/client.crt
+curl --cacert ${PKI_CONFIG_DIR}/ca.crt -s -X POST --data-binary @${PKI_CONFIG_DIR}/client.csr -H "X-Kafka-Config-Token: ${DSH_SECRET_TOKEN}" "https://${DSH_KAFKA_CONFIG_ENDPOINT}/sign/${KAFKA_GROUP}/${MESOS_TASK_ID}" > ${PKI_CONFIG_DIR}/client.crt
 
 # Import signed certificate
 keytool -importcert -alias client -file ${PKI_CONFIG_DIR}/client.crt -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE}
@@ -119,7 +119,7 @@ openssl pkcs12 -in ${PKI_CONFIG_DIR}/client.pfx -out ${PKI_CONFIG_DIR}/client.p1
 
 # Fetch tenant and application specific configuration from the PKI including:
 # streams, kafka consumergroup ids and bootstrap servers
-curl -sf --cacert ${PKI_CONFIG_DIR}/ca.crt --cert ${PKI_CONFIG_DIR}/client.p12:${PKI_PASS} "https://${KAFKA_CONFIG_HOST}/kafka/config/${KAFKA_GROUP}/${MESOS_TASK_ID}?format=java" > ${PKI_CONFIG_DIR}/datastreams.properties
+curl -sf --cacert ${PKI_CONFIG_DIR}/ca.crt --cert ${PKI_CONFIG_DIR}/client.p12:${PKI_PASS} "https://${DSH_KAFKA_CONFIG_ENDPOINT}/kafka/config/${KAFKA_GROUP}/${MESOS_TASK_ID}?format=java" > ${PKI_CONFIG_DIR}/datastreams.properties
 
 # Remove intermediate files
 rm -f ${PKI_CONFIG_DIR}/client.csr ${PKI_CONFIG_DIR}/client.crt ${PKI_CONFIG_DIR}/client.pfx ${PKI_CONFIG_DIR}/client.p12
