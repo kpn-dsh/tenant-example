@@ -17,6 +17,10 @@ set -eux
 # DSH_SECRET_TOKEN: token that can be used to identify against the PKI:
 # automatically set by mesos
 
+# DSH_CONTAINER_DNS_NAME: the internal DNS name of this container, typically
+# <appname>.<tenant>.marathon.mesos. Note that this is the same value for _all_
+# instances of a multi-instance app.
+
 # MESOS_TASK_ID: passed in by mesos to identify this container: automatically
 # set by mesos
 
@@ -76,17 +80,6 @@ function get_ip_address() {
 # tenant.
 KAFKA_GROUP=`echo ${MARATHON_APP_ID} | cut -d / -f 2`
 
-# DNS =
-# marathon app id,
-# split on /
-# reverse the list
-# remove empty lines
-# replace line endings by . 
-# append marathon.mesos
-# Which becomes something like container_name.tenant.marathon.mesos
-
-DNS=`echo ${MARATHON_APP_ID} | tr "/" "\n" | sed '1!G;h;$!d' | grep -v "^$" | tr "\n" "." | sed "s/$/marathon.mesos/g"`
-
 # Get DSH CA certificate into a file
 echo "${DSH_CA_CERTIFICATE}" > ${PKI_CONFIG_DIR}/ca.crt
 
@@ -126,9 +119,9 @@ keytool -genkey -dname "${DN}" -alias client -keyalg RSA -keysize 2048 -storepas
 IPSAN=""
 IP=$(get_ip_address)
 if [ ! -z "$IP" ] ; then
-    IPSAN="-ext SAN=ip:${IP}"
+    IPSAN=",ip:${IP}"
 fi
-keytool -certreq -alias client -ext san=dns:${DNS} -file ${PKI_CONFIG_DIR}/client.csr -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE} -ext SAN=dns:${DSH_CONTAINER_DNS_NAME} $IPSAN
+keytool -certreq -alias client -file ${PKI_CONFIG_DIR}/client.csr -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE} -ext SAN=dns:${DSH_CONTAINER_DNS_NAME}${IPSAN}
 
 # Ask PKI to sign the request (need to provide DSH_SECRET_TOKEN)
 curl --cacert ${PKI_CONFIG_DIR}/ca.crt -s -X POST --data-binary @${PKI_CONFIG_DIR}/client.csr -H "X-Kafka-Config-Token: ${DSH_SECRET_TOKEN}" "${DSH_KAFKA_CONFIG_ENDPOINT}/sign/${KAFKA_GROUP}/${MESOS_TASK_ID}" > ${PKI_CONFIG_DIR}/client.crt
