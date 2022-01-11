@@ -17,6 +17,10 @@ set -eux
 # DSH_SECRET_TOKEN: token that can be used to identify against the PKI:
 # automatically set by mesos
 
+# DSH_CONTAINER_DNS_NAME: the internal DNS name of this container, typically
+# <appname>.<tenant>.marathon.mesos. Note that this is the same value for _all_
+# instances of a multi-instance app.
+
 # MESOS_TASK_ID: passed in by mesos to identify this container: automatically
 # set by mesos
 
@@ -52,20 +56,29 @@ then
         exit 0
 fi
 
+function get_ip_address() {
+    # first method: hostname -i
+    if [ "$(hostname -i 2> /dev/null | wc -l)" == "1" ]  ; then
+        hostname -i
+        return
+    fi
+
+    # second method: ip addr
+    local device=$(ip route show match 1.1.1.1 2> /dev/null | sed 's/.* dev \([^ ]\+\).*/\1/')
+    if [ ! -z "${device}" ] ; then
+        local addr=$(ip addr show ${device} 2> /dev/null | grep inet | sed 's/.* \([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/')
+        if [ ! -z "${addr}" ] ; then
+            echo ${addr}
+            return
+        fi
+    fi
+
+    >&2 echo "could not determine IP address; IP SAN will not be added in the certificate"
+}
+
 # The group this application is running in. Typically this is the name of the
 # tenant.
 KAFKA_GROUP=`echo ${MARATHON_APP_ID} | cut -d / -f 2`
-
-# DNS =
-# marathon app id,
-# split on /
-# reverse the list
-# remove empty lines
-# replace line endings by . 
-# append marathon.mesos
-# Which becomes something like container_name.tenant.marathon.mesos
-
-DNS=`echo ${MARATHON_APP_ID} | tr "/" "\n" | sed '1!G;h;$!d' |grep -v "^$" |tr "\n" "." | sed "s/$/marathon.mesos/g"`
 
 # Get DSH CA certificate into a file
 echo "${DSH_CA_CERTIFICATE}" > ${PKI_CONFIG_DIR}/ca.crt
@@ -102,8 +115,13 @@ keytool -importcert -noprompt -trustcacerts -alias ca -file ${PKI_CONFIG_DIR}/ca
 # Generate a new key
 keytool -genkey -dname "${DN}" -alias client -keyalg RSA -keysize 2048 -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE}
 
-# And request a certificate for it, using dns as a san
-keytool -certreq -alias client -ext san=dns:${DNS} -file ${PKI_CONFIG_DIR}/client.csr -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE}
+# And request a certificate for it, using dns and (if we can deduce it) IP address as SANs
+IPSAN=""
+IP=$(get_ip_address)
+if [ ! -z "$IP" ] ; then
+    IPSAN=",ip:${IP}"
+fi
+keytool -certreq -alias client -file ${PKI_CONFIG_DIR}/client.csr -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE} -ext SAN=dns:${DSH_CONTAINER_DNS_NAME}${IPSAN}
 
 # Ask PKI to sign the request (need to provide DSH_SECRET_TOKEN)
 curl --cacert ${PKI_CONFIG_DIR}/ca.crt -s -X POST --data-binary @${PKI_CONFIG_DIR}/client.csr -H "X-Kafka-Config-Token: ${DSH_SECRET_TOKEN}" "${DSH_KAFKA_CONFIG_ENDPOINT}/sign/${KAFKA_GROUP}/${MESOS_TASK_ID}" > ${PKI_CONFIG_DIR}/client.crt
