@@ -126,7 +126,7 @@ keytool -genkey -dname "${DN}" -alias client -keyalg RSA -keysize 2048 -storepas
 IPSAN=""
 IP=$(get_ip_address)
 if [ ! -z "$IP" ] ; then
-    IPSAN= "-ext SAN=ip:${IP}"
+    IPSAN="-ext SAN=ip:${IP}"
 fi
 keytool -certreq -alias client -ext san=dns:${DNS} -file ${PKI_CONFIG_DIR}/client.csr -storepass ${PKI_PASS} -keypass ${PKI_PASS} -keystore ${PKI_KEYSTORE} -ext SAN=dns:${DSH_CONTAINER_DNS_NAME} $IPSAN
 
