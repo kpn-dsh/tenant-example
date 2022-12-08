@@ -1,15 +1,15 @@
 package com.kpn.dsh.example;
 
 import com.kpn.dsh.messages.common.Envelope.DataEnvelope;
+import com.kpn.dsh.messages.common.Envelope.Identity;
 import com.kpn.dsh.messages.common.Envelope.KeyEnvelope;
-import com.uber.jaeger.Configuration;
-import com.uber.jaeger.reporters.Reporter;
+import com.kpn.dsh.messages.common.Envelope.KeyHeader;
+import io.jaegertracing.Configuration;
 import io.opentracing.References;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.propagation.Format;
-import io.opentracing.propagation.TextMapExtractAdapter;
-import io.opentracing.propagation.TextMapInjectAdapter;
+import io.opentracing.propagation.TextMapAdapter;
 import io.opentracing.util.GlobalTracer;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,8 +19,6 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-
-import com.kpn.dsh.messages.common.Envelope.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -83,7 +81,7 @@ public class Main {
             return DataEnvelopeSerializer.wrap(asBytes);
         }
         HashMap<String,String> trace=new HashMap<>();
-        GlobalTracer.get().inject(span.context(), Format.Builtin.TEXT_MAP, new TextMapInjectAdapter(trace));
+        GlobalTracer.get().inject(span.context(), Format.Builtin.TEXT_MAP, new TextMapAdapter(trace));
         return DataEnvelopeSerializer.wrap(asBytes, trace);
     }
 
@@ -92,7 +90,7 @@ public class Main {
         if (d.getTracingMap().size() == 0) {
             return null;
         }
-        return GlobalTracer.get().extract(Format.Builtin.TEXT_MAP, new TextMapExtractAdapter(d.getTracingMap()));
+        return GlobalTracer.get().extract(Format.Builtin.TEXT_MAP, new TextMapAdapter(d.getTracingMap()));
     }
 
     // creates a span that covers the period between message creation and now
