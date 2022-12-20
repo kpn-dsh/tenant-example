@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.kpn-dsh</groupId>
   <artifactId>tenant-example</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT-ercan500-amd64</version>
   <properties>
-    <tenant>dshdemo1</tenant>
+    <tenant>greenbox-training</tenant>
     <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
-    <protobuf.version>3.3.0</protobuf.version>
-    <org.slf4j.version>1.7.25</org.slf4j.version>
-    <ch.qos.logback.version>1.2.2</ch.qos.logback.version>
+    <protobuf.version>3.21.9</protobuf.version>
+    <org.slf4j.version>2.0.5</org.slf4j.version>
+    <ch.qos.logback.version>1.4.5</ch.qos.logback.version>
   </properties>
   <dependencies>
     <!-- Protobuf -->
@@ -22,7 +22,7 @@
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
-      <version>0.10.2.1</version>
+      <version>3.3.1</version>
     </dependency>
     <!-- Logging -->
     <dependency>
@@ -41,9 +41,9 @@
       <version>${ch.qos.logback.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.uber.jaeger</groupId>
+      <groupId>io.jaegertracing</groupId>
       <artifactId>jaeger-core</artifactId>
-      <version>0.26.0</version>
+      <version>1.8.1</version>
     </dependency>
   </dependencies>
   <build>
@@ -79,10 +79,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>3.10.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>17</source>
+          <target>17</target>
           <encoding>utf-8</encoding>
           <compilerVersion>1.7</compilerVersion>
           <compilerArgument>-Xlint:all</compilerArgument>
@@ -167,9 +167,9 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>com.spotify</groupId>
-        <artifactId>dockerfile-maven-plugin</artifactId>
-        <version>1.3.3</version>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.40.2</version>
         <executions>
           <execution>
             <id>default</id>
@@ -180,8 +180,11 @@
           </execution>
         </executions>
         <configuration>
-          <repository>dataserviceshub-docker-${tenant}.jfrog.io/tenant-example</repository>
-          <tag>${project.version}</tag>
+          <images>
+            <image>
+              <name>registry.cp.kpn-dsh.com-${tenant}/tenant-example:${project.version}</name>
+            </image>
+          </images>
           <buildArgs>
             <IMAGE_VERSION>${project.version}</IMAGE_VERSION>
           </buildArgs>
