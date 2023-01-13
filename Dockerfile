@@ -1,5 +1,7 @@
-FROM openjdk:17
-MAINTAINER Bruno De Bus <Bruno.DeBus@klarrio.com>
+FROM openjdk:17-jdk-slim-buster
+MAINTAINER Silan Isik <s.isik02@kpn.com>
+
+
 
 ARG IMAGE_VERSION
 
@@ -8,6 +10,8 @@ ARG IMAGE_VERSION
 ENV id 1937
 ADD get_signed_certificate.sh /get_signed_certificate.sh
 ADD docker-entrypoint.sh /docker-entrypoint.sh
+
+RUN apt update && apt install -y openssl curl
 
 RUN groupadd --gid $id dshdemo
 RUN useradd --no-create-home --uid $id --gid $id dshdemo
