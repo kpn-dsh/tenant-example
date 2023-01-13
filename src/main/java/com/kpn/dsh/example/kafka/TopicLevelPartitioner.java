@@ -1,7 +1,5 @@
-package com.kpn.dsh.example;
+package com.kpn.dsh.example.kafka;
 
-import java.lang.StringBuilder;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import org.apache.kafka.clients.producer.Partitioner;
