@@ -188,3 +188,36 @@ for which we have included an example implementation, in the
 The `TopicLevelPartitioner` class will figure out the partitioning depth (the
 aforementioned `n` parameter) from the configuration values you fetched from
 the Kafka configuration service, and passed to your Kafka producer constructor.
+
+## How to run
+Login Docker with your Harbor account
+`docker login -u <User_Name> registry.cp.kpn-dsh.com`
+
+Maven compile command example:
+`mvn clean install -Dtenant=greenbox-training  -Dversion=1.0.3-SNAPSHOT-silan`
+
+After compiling the project run docker build command
+`docker build -t registry.cp.kpn-dsh.com/<tenant-name>/<repo_name>:<version> --build-arg IMAGE_VERSION=<version> .`
+
+And then you can push your image to harbor
+`docker push registry.cp.kpn-dsh.com/<tenant-name>/<repo_name>:<version>`
+
+Create your tenant service in DSH Console.
+You can check `tenant_example.json` for example of configuration.
+
+Execute twice src/mqtt_script.sh in your local with correct parameters to get mqtt token for both sub and pub clients.
+Example: `./mqtt_sub_script.sh greenbox-training <api-key> "/tt/greenbox-training/"`
+
+
+
+- Input topic: stream.greenbox-training.dsh
+- Output topic: stream.greenbox-training.greenbox-training
+- Mqtt topic name: /tt/greenbox-training/
+
+You can find the commands for subscribe and  publish in below:
+```agsl
+  mosquitto_pub -h mqtt.dsh-dev.dsh.np.aws.kpn.com -p 8883 -t "/tt/greenbox-training/command/" -d -P "`cat mqtt_token_1`" -u "1937" -i "1937" -l
+  mosquitto_sub -h mqtt.dsh-dev.dsh.np.aws.kpn.com -p 8883 -t "/tt/greenbox-training/response/#" -d -P "`cat mqtt_token`" -u 1937 -i 1937 -v
+ ```
+You can also check the records with Eavesdropper:
+https://eavesdropper-greenbox-training.greenbox-training.dsh-dev.dsh.np.aws.kpn.com
