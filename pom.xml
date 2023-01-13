@@ -3,13 +3,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.kpn-dsh</groupId>
   <artifactId>tenant-example</artifactId>
-  <version>1.0.1-SNAPSHOT-ercan500-amd64</version>
+  <version>${version}</version>
+
   <properties>
-    <tenant>greenbox-training</tenant>
+    <tenant>${tenant}</tenant>
+    <platform>linux/amd64</platform>
     <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
     <protobuf.version>3.21.9</protobuf.version>
     <org.slf4j.version>2.0.5</org.slf4j.version>
     <ch.qos.logback.version>1.4.5</ch.qos.logback.version>
+
   </properties>
   <dependencies>
     <!-- Protobuf -->
@@ -22,7 +25,7 @@
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
-      <version>3.3.1</version>
+      <version>2.8.2</version>
     </dependency>
     <!-- Logging -->
     <dependency>
@@ -182,7 +185,13 @@
         <configuration>
           <images>
             <image>
-              <name>registry.cp.kpn-dsh.com-${tenant}/tenant-example:${project.version}</name>
+              <name>registry.cp.kpn-dsh.com/${tenant}/tenant-example:${project.version}</name>
+              <build>
+                <dockerFile>${project.basedir}/Dockerfile</dockerFile>
+                <createImageOptions>
+                  <platform>${platform}</platform>
+                </createImageOptions>
+              </build>
             </image>
           </images>
           <buildArgs>
