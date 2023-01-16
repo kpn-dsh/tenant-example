@@ -80,7 +80,7 @@ public class RecordProcessor {
                 Envelope.DataEnvelope responseData = wrapData(response, span);
                 System.out.println("Response key: " + responseKey);
                 System.out.println("Output topic: "+ outputTopic);
-                System.out.println("Repsponse data: "+ responseData);
+                System.out.println("Response data: "+ responseData);
                 producer.send(
                         new ProducerRecord<>(outputTopic, responseKey, responseData));
                 break;
