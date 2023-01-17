@@ -196,7 +196,7 @@ Login to Docker with your Harbor account
 Example command to build the JAR, create a container and push it to the registry 
 (optionally providing your own values for the variables in the POM):
 <br/>
-`mvn clean install -Dversion=1.0.3-SNAPSHOT-silan -Dtenant=greenbox-training -DuserId=1937 docker:push`
+`mvn clean install -Drevision=1.0.3-SNAPSHOT -Dtenant=greenbox-training -DuserId=1937 docker:push`
 
 The Docker part can be done manually too, without using the Maven Docker plugin specified in the POM:
 ```
