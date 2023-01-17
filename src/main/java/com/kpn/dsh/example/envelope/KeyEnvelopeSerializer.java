@@ -1,7 +1,7 @@
-package com.kpn.dsh.example;
+package com.kpn.dsh.example.envelope;
 
 import java.util.Map;
-import java.nio.charset.Charset;
+
 import com.kpn.dsh.messages.common.Envelope.*;
 import org.apache.kafka.common.serialization.Serializer;
 
@@ -34,7 +34,7 @@ public class KeyEnvelopeSerializer implements Serializer<KeyEnvelope> {
      * @param tenant the tenant id
      * @param publisher a free-form string identifying this particular data producer.
      */
-    static void setIdentifier(String tenant, String publisher) {
+    public static void setIdentifier(String tenant, String publisher) {
         KeyEnvelopeSerializer.tenant = tenant;
         KeyEnvelopeSerializer.publisher = publisher;
     }

@@ -1,7 +1,6 @@
-package com.kpn.dsh.example;
+package com.kpn.dsh.example.envelope;
 
 import java.util.Map;
-import java.nio.charset.Charset;
 import com.kpn.dsh.messages.common.Envelope.*;
 import org.apache.kafka.common.serialization.Deserializer;
 

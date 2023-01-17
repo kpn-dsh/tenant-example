@@ -188,3 +188,20 @@ for which we have included an example implementation, in the
 The `TopicLevelPartitioner` class will figure out the partitioning depth (the
 aforementioned `n` parameter) from the configuration values you fetched from
 the Kafka configuration service, and passed to your Kafka producer constructor.
+
+## How to run
+Login to Docker with your Harbor account
+`docker login -u <User_Name> registry.cp.kpn-dsh.com`
+
+Example command to build the JAR, create a container and push it to the registry 
+(optionally providing your own values for the variables in the POM):
+<br/>
+`mvn clean install -Drevision=1.0.3-SNAPSHOT -Dtenant=greenbox-training -DuserId=1937 docker:push`
+
+The Docker part can be done manually too, without using the Maven Docker plugin specified in the POM:
+```
+docker build -t registry.cp.kpn-dsh.com/<tenant-name>/<repo_name>:<version> --build-arg image_version=<image_version> --build-arg user_id=<user_id>.
+docker push registry.cp.kpn-dsh.com/<tenant-name>/<repo_name>:<version>
+```
+
+See the _example_ folder for example commands and configurations deploying and testing in a DSH tenant.

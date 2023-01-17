@@ -1,11 +1,9 @@
-package com.kpn.dsh.example;
+package com.kpn.dsh.example.envelope;
 
 import java.util.Map;
 import com.kpn.dsh.messages.common.Envelope.*;
 import org.apache.kafka.common.serialization.Serializer;
 import com.google.protobuf.ByteString;
-
-import static com.kpn.dsh.messages.common.Envelope.DataEnvelope.KindCase.KIND_NOT_SET;
 
 /**
  * DataEnvelopeSerializer serializes enveloped messages.

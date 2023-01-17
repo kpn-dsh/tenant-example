@@ -1,0 +1,20 @@
+{
+  "name": "tenant-example-training",
+  "image": "registry.cp.kpn-dsh.com/greenbox-training/tenant-example:1.0.1-SNAPSHOT",
+  "cpus": 0.1,
+  "mem": 256,
+  "env": {
+    "JAEGER_SAMPLER_TYPE": "const",
+    "JAEGER_SAMPLER_PARAM": "1",
+    "OUTPUT_STREAM": "stream.greenbox-training",
+    "JAEGER_REPORTER_FLUSH_INTERVAL": "1000",
+    "JAEGER_REPORTER_LOG_SPANS": "false",
+    "JAEGER_SERVICE_NAME": "tenant-example",
+    "INPUT_STREAM": "stream.greenbox-training",
+    "JAEGER_REPORTER_MAX_QUEUE_SIZE": "10000"
+  },
+  "instances": 1,
+  "singleInstance": false,
+  "needsToken": true,
+  "user": "1937:1937"
+}

@@ -1,4 +1,4 @@
-package com.kpn.dsh.example;
+package com.kpn.dsh.example.envelope;
 
 import java.util.Map;
 import com.kpn.dsh.messages.common.Envelope.DataEnvelope;
