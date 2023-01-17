@@ -193,7 +193,8 @@ the Kafka configuration service, and passed to your Kafka producer constructor.
 Login to Docker with your Harbor account
 `docker login -u <User_Name> registry.cp.kpn-dsh.com`
 
-Example command to build the JAR, create a container and push it to the registry:
+Example command to build the JAR, create a container and push it to the registry 
+(optionally providing your own values for the variables in the POM):
 <br/>
 `mvn clean install -Dversion=1.0.3-SNAPSHOT-silan -Dtenant=greenbox-training -DuserId=1937 docker:push`
 
