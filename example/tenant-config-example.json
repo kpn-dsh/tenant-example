@@ -1,6 +1,6 @@
 {
   "name": "tenant-example-training",
-  "image": "registry.cp.kpn-dsh.com/greenbox-training/tenant-example:1.0.3-SNAPSHOT-silan",
+  "image": "registry.cp.kpn-dsh.com/greenbox-training/tenant-example:1.0.1-SNAPSHOT",
   "cpus": 0.1,
   "mem": 256,
   "env": {

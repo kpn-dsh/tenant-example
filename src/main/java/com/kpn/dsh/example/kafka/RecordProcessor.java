@@ -30,7 +30,6 @@ public class RecordProcessor {
     KafkaProducer<Envelope.KeyEnvelope, Envelope.DataEnvelope> producer = getProducer();
     String outputTopic = getOutputTopic();
     Pattern inputTopicPattern = getInputTopic();
-    private String answerId = "tenant-example";
 
     private void processMessage(ConsumerRecord<Envelope.KeyEnvelope, Envelope.DataEnvelope> record, String answerId) {
         // ignore messages with missing key or value
@@ -80,7 +79,7 @@ public class RecordProcessor {
                 Envelope.DataEnvelope responseData = wrapData(response, span);
                 System.out.println("Response key: " + responseKey);
                 System.out.println("Output topic: "+ outputTopic);
-                System.out.println("Repsponse data: "+ responseData);
+                System.out.println("Response data: "+ responseData);
                 producer.send(
                         new ProducerRecord<>(outputTopic, responseKey, responseData));
                 break;

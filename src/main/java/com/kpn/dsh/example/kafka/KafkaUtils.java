@@ -64,7 +64,7 @@ public class KafkaUtils {
         return outputTopic;
     }
 
-    public static String[] getComsumerGroups(String groupName) {
+    public static String[] getConsumerGroups(String groupName) {
         return commonProps.getProperty("consumerGroups."+groupName).split(", *");
     }
 
@@ -72,8 +72,8 @@ public class KafkaUtils {
     public static KafkaConsumer<Envelope.KeyEnvelope, Envelope.DataEnvelope> getConsumer() {
         Properties consumerProps = getCommonProps();
 
-        String[] privateConsumerGroups = getComsumerGroups("private");
-        String[] sharedConsumerGroups = getComsumerGroups("shared");
+        String[] privateConsumerGroups = getConsumerGroups("private");
+        String[] sharedConsumerGroups = getConsumerGroups("shared");
 
         consumerProps.put("group.id", sharedConsumerGroups[0]); // use a shared consumer group, otherwise all instances will respond to all messages
         consumerProps.put("key.deserializer", KeyEnvelopeDeserializer.class.getName());
