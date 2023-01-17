@@ -1,5 +1,5 @@
 FROM openjdk:17-jdk-slim-buster
-MAINTAINER Silan Isik <s.isik02@kpn.com>
+MAINTAINER Bruno De Bus <Bruno.DeBus@klarrio.com>
 
 ARG image_version
 # for training purposed configure uid to be 1024 for dshdemo1 or 1025 for
