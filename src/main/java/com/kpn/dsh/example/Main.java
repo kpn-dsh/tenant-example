@@ -211,6 +211,12 @@ public class Main {
         consumerProps.put("group.id", sharedConsumerGroups[0]); // use a shared consumer group, otherwise all instances will respond to all messages
         consumerProps.put("key.deserializer", KeyEnvelopeDeserializer.class.getName());
         consumerProps.put("value.deserializer", DataEnvelopeDeserializer.class.getName());
+        consumerProps.put("schema.registry.url", consumerProps.getProperty("schema.store"));
+        consumerProps.put("schema.registry.ssl.truststore.location", consumerProps.getProperty("ssl.truststore.location"));
+        consumerProps.put("schema.registry.ssl.truststore.password", consumerProps.getProperty("ssl.truststore.password"));
+        consumerProps.put("schema.registry.ssl.keystore.location", consumerProps.getProperty("ssl.keystore.location"));
+        consumerProps.put("schema.registry.ssl.keystore.password", consumerProps.getProperty("ssl.keystore.password"));
+        consumerProps.put("schema.registry.ssl.key.password", consumerProps.getProperty("ssl.key.password"));
         consumer = new KafkaConsumer<>(consumerProps);
 
         /* set up kafka producer */
@@ -219,6 +225,12 @@ public class Main {
         producerProps.put("key.serializer", KeyEnvelopeSerializer.class.getName());
         producerProps.put("value.serializer", DataEnvelopeSerializer.class.getName());
         producerProps.put("partitioner.class",TopicLevelPartitioner.class.getName());
+        producerProps.put("schema.registry.url", producerProps.getProperty("schema.store"));
+        producerProps.put("schema.registry.ssl.truststore.location", producerProps.getProperty("ssl.truststore.location"));
+        producerProps.put("schema.registry.ssl.truststore.password", producerProps.getProperty("ssl.truststore.password"));
+        producerProps.put("schema.registry.ssl.keystore.location", producerProps.getProperty("ssl.keystore.location"));
+        producerProps.put("schema.registry.ssl.keystore.password", producerProps.getProperty("ssl.keystore.password"));
+        producerProps.put("schema.registry.ssl.key.password", producerProps.getProperty("ssl.key.password"));
         producer = new KafkaProducer<>(producerProps);
     }
 
