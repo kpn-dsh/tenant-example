@@ -6,6 +6,7 @@ data streams. The particular points to pay attention to are:
 - key and data envelopes for serialization/deserialization on public streams
   (the `stream.<something>` streams).
 - partitioning for public streams.
+- connection to DSH schema-store.
 
 ## Kafka configuration
 
@@ -17,6 +18,18 @@ needs to fetch its kafka configuration from the kafka configuration service
 depends on a limited-lifetime token that is configured in the container's
 environment on startup. If you wait for the token to expire, there is no way
 for the container to ever fetch its Kafka configuration.
+
+**Connecting to `Schema-Store` (optional).** Optionally, you can connect your producer/consumer 
+to DSH `Schema-store` for registering [Protobuf|Json|Avro] schemas. All configurations are done by 
+loading relevant properties from `datastreams.properties` and adding them to your producer/consumer configurations:
+
+- `schema.registry.url` value at `schema.store`.
+- `schema.registry.ssl.truststore.location` value at `"ssl.truststore.location`.
+- `schema.registry.ssl.truststore.password` value at `ssl.truststore.password`.
+- `schema.registry.ssl.keystore.location` value at `ssl.keystore.location`.
+- `schema.registry.ssl.keystore.password` value at `ssl.keystore.password`.
+- `schema.registry.ssl.key.password` value at `"ssl.key.password`.
+
 
 The full flow for fetching the Kafka configuration is a rather involved
 multi-step process. Documenting it here in its entirety will lead us too far,
