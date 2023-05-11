@@ -1,9 +1,11 @@
 package com.kpn.dsh.example;
 
 import com.kpn.dsh.messages.common.Envelope.DataEnvelope;
+import com.kpn.dsh.messages.common.Envelope.Identity;
 import com.kpn.dsh.messages.common.Envelope.KeyEnvelope;
+import com.kpn.dsh.messages.common.Envelope.KeyHeader;
 import com.uber.jaeger.Configuration;
-import com.uber.jaeger.reporters.Reporter;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import io.opentracing.References;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -11,16 +13,12 @@ import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMapExtractAdapter;
 import io.opentracing.propagation.TextMapInjectAdapter;
 import io.opentracing.util.GlobalTracer;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-
-import com.kpn.dsh.messages.common.Envelope.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -149,7 +147,7 @@ public class Main {
         KeyEnvelope responseKey = wrapKey(String.join("/", splitKey));
         switch (command) {
             case "whoami":
-                String response = answerId + " says you are: " + identity.toString();
+                String response = answerId + " says you are: " + identity;
                 DataEnvelope responseData = wrapData(response, span);
                 producer.send(
                         new ProducerRecord<>(outputTopic, responseKey, responseData));
@@ -209,9 +207,11 @@ public class Main {
         /* set up kafka consumer */
         Properties consumerProps = getCommonProps();
         consumerProps.put("group.id", sharedConsumerGroups[0]); // use a shared consumer group, otherwise all instances will respond to all messages
-        consumerProps.put("key.deserializer", KeyEnvelopeDeserializer.class.getName());
-        consumerProps.put("value.deserializer", DataEnvelopeDeserializer.class.getName());
-        consumerProps.put("schema.registry.url", consumerProps.getProperty("schema.store"));
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, KeyEnvelopeDeserializer.class.getName());
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DataEnvelopeDeserializer.class.getName());
+        consumerProps.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_KEY_TYPE, KeyEnvelope.class.getName());
+        consumerProps.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, DataEnvelope.class.getName());
+        consumerProps.put("schema.registry.url", "https://schema-store.dex-dev-c.marathon.mesos:8443");
         consumerProps.put("schema.registry.ssl.truststore.location", consumerProps.getProperty("ssl.truststore.location"));
         consumerProps.put("schema.registry.ssl.truststore.password", consumerProps.getProperty("ssl.truststore.password"));
         consumerProps.put("schema.registry.ssl.keystore.location", consumerProps.getProperty("ssl.keystore.location"));
@@ -222,10 +222,10 @@ public class Main {
         /* set up kafka producer */
         Properties producerProps = getCommonProps();
         producerProps.put("acks", "all");
-        producerProps.put("key.serializer", KeyEnvelopeSerializer.class.getName());
-        producerProps.put("value.serializer", DataEnvelopeSerializer.class.getName());
+        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, KeyEnvelopeSerializer.class.getName());
+        producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, DataEnvelopeSerializer.class.getName());
         producerProps.put("partitioner.class",TopicLevelPartitioner.class.getName());
-        producerProps.put("schema.registry.url", producerProps.getProperty("schema.store"));
+        producerProps.put("schema.registry.url", "https://schema-store.dex-dev-c.marathon.mesos:8443");
         producerProps.put("schema.registry.ssl.truststore.location", producerProps.getProperty("ssl.truststore.location"));
         producerProps.put("schema.registry.ssl.truststore.password", producerProps.getProperty("ssl.truststore.password"));
         producerProps.put("schema.registry.ssl.keystore.location", producerProps.getProperty("ssl.keystore.location"));
@@ -269,7 +269,7 @@ public class Main {
                 }
             }
         } catch (WakeupException e) {
-            // ignore for shutdown 
+            // ignore for shutdown
         } finally {
             consumer.close();
             producer.close();
