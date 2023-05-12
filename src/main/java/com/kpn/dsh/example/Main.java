@@ -1,9 +1,13 @@
 package com.kpn.dsh.example;
 
-import com.kpn.dsh.messages.common.Envelope.DataEnvelope;
-import com.kpn.dsh.messages.common.Envelope.KeyEnvelope;
+import com.kpn.dsh.messages.common.Data.DataEnvelope;
+import com.kpn.dsh.messages.common.Key.Identity;
+import com.kpn.dsh.messages.common.Key.KeyEnvelope;
+import com.kpn.dsh.messages.common.Key.KeyHeader;
 import com.uber.jaeger.Configuration;
-import com.uber.jaeger.reporters.Reporter;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
 import io.opentracing.References;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -11,16 +15,12 @@ import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMapExtractAdapter;
 import io.opentracing.propagation.TextMapInjectAdapter;
 import io.opentracing.util.GlobalTracer;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-
-import com.kpn.dsh.messages.common.Envelope.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import static com.kpn.dsh.messages.common.Envelope.DataEnvelope.KindCase.KIND_NOT_SET;
+import static com.kpn.dsh.messages.common.Data.DataEnvelope.KindCase.KIND_NOT_SET;
 
 /**
  * Noop consumer rebalance listener for Kafka.
@@ -134,14 +134,14 @@ public class Main {
         if (parentSpanContext != null) {
             Span inTransit = makeInTransitSpan(parentSpanContext,record) ;
             span = GlobalTracer.get()
-                .buildSpan("process-message")
-                .addReference(References.FOLLOWS_FROM, inTransit.context())
-                .start();
+                    .buildSpan("process-message")
+                    .addReference(References.FOLLOWS_FROM, inTransit.context())
+                    .start();
         }
 
         String command = (KIND_NOT_SET == wrappedValue.getKindCase())
-                                ? null
-                                : wrappedValue.getPayload().toStringUtf8();
+                ? null
+                : wrappedValue.getPayload().toStringUtf8();
 
         System.out.println("Received command: " + command);
 
@@ -149,15 +149,17 @@ public class Main {
         KeyEnvelope responseKey = wrapKey(String.join("/", splitKey));
         switch (command) {
             case "whoami":
-                String response = answerId + " says you are: " + identity.toString();
+                String response = answerId + " says you are: " + identity;
                 DataEnvelope responseData = wrapData(response, span);
                 producer.send(
                         new ProducerRecord<>(outputTopic, responseKey, responseData));
+                producer.flush();
                 break;
             case "restart":
                 producer.send(
                         new ProducerRecord<>(outputTopic, responseKey, wrapData("bye bye", span)));
                 consumer.wakeup(); // this will raise the WakeupException that will break us out of the infinite loop
+                producer.flush();
                 break;
             default:
                 System.out.println("Command not handled: "+command);
@@ -208,10 +210,12 @@ public class Main {
 
         /* set up kafka consumer */
         Properties consumerProps = getCommonProps();
-        consumerProps.put("group.id", sharedConsumerGroups[0]); // use a shared consumer group, otherwise all instances will respond to all messages
-        consumerProps.put("key.deserializer", KeyEnvelopeDeserializer.class.getName());
-        consumerProps.put("value.deserializer", DataEnvelopeDeserializer.class.getName());
-        consumerProps.put("schema.registry.url", consumerProps.getProperty("schema.store"));
+        consumerProps.put("group.id", privateConsumerGroups[0]); // use a shared consumer group, otherwise all instances will respond to all messages
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, KeyEnvelopeDeserializer.class.getName());
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DataEnvelopeDeserializer.class.getName());
+        consumerProps.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_KEY_TYPE, KeyEnvelope.class.getName());
+        consumerProps.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, DataEnvelope.class.getName());
+        consumerProps.put("schema.registry.url", "https://schema-store.dex-dev-c.marathon.mesos:8443");
         consumerProps.put("schema.registry.ssl.truststore.location", consumerProps.getProperty("ssl.truststore.location"));
         consumerProps.put("schema.registry.ssl.truststore.password", consumerProps.getProperty("ssl.truststore.password"));
         consumerProps.put("schema.registry.ssl.keystore.location", consumerProps.getProperty("ssl.keystore.location"));
@@ -222,10 +226,10 @@ public class Main {
         /* set up kafka producer */
         Properties producerProps = getCommonProps();
         producerProps.put("acks", "all");
-        producerProps.put("key.serializer", KeyEnvelopeSerializer.class.getName());
-        producerProps.put("value.serializer", DataEnvelopeSerializer.class.getName());
+        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, KeyEnvelopeSerializer.class.getName());
+        producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaProtobufSerializer.class.getName());
         producerProps.put("partitioner.class",TopicLevelPartitioner.class.getName());
-        producerProps.put("schema.registry.url", producerProps.getProperty("schema.store"));
+        producerProps.put("schema.registry.url", "https://schema-store.dex-dev-c.marathon.mesos:8443");
         producerProps.put("schema.registry.ssl.truststore.location", producerProps.getProperty("ssl.truststore.location"));
         producerProps.put("schema.registry.ssl.truststore.password", producerProps.getProperty("ssl.truststore.password"));
         producerProps.put("schema.registry.ssl.keystore.location", producerProps.getProperty("ssl.keystore.location"));
@@ -263,13 +267,18 @@ public class Main {
             consumer.subscribe(inputTopicPattern, new NoopRebalanceListener());
 
             while (true) {
-                ConsumerRecords<KeyEnvelope, DataEnvelope> records = consumer.poll(Long.MAX_VALUE);
-                for (ConsumerRecord<KeyEnvelope, DataEnvelope> record : records) {
-                    processMessage(record);
+                try {
+                    ConsumerRecords<KeyEnvelope, DataEnvelope> records = consumer.poll(Long.MAX_VALUE);
+                    for (ConsumerRecord<KeyEnvelope, DataEnvelope> record : records) {
+                        processMessage(record);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    consumer.commitSync();
                 }
             }
         } catch (WakeupException e) {
-            // ignore for shutdown 
+            // ignore for shutdown
         } finally {
             consumer.close();
             producer.close();

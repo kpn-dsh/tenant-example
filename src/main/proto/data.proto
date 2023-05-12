@@ -1,0 +1,24 @@
+// Proto schema formatted by Wire, do not edit.
+// Source:
+
+syntax = "proto3";
+
+package com.kpn.dsh.messages.common;
+
+option java_package = "com.kpn.dsh.messages.common";
+
+message DataEnvelope {
+    repeated .com.kpn.dsh.messages.common.DataEnvelope.TracingEntry tracing = 2;
+
+    oneof kind {
+        bytes payload = 1;
+    }
+
+    message TracingEntry {
+        option map_entry = true;
+
+        string key = 1;
+
+        string value = 2;
+    }
+}

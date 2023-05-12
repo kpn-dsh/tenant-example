@@ -1,13 +1,12 @@
 package com.kpn.dsh.example;
 
-import java.lang.StringBuilder;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
+import com.kpn.dsh.messages.common.Key.KeyEnvelope;
 import org.apache.kafka.clients.producer.Partitioner;
 import org.apache.kafka.common.Cluster;
 import org.apache.kafka.common.utils.Utils;
-import com.kpn.dsh.messages.common.Envelope.KeyEnvelope;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * TopicLevelPartitioner partitions outgoing messages by hashing the 
