@@ -206,7 +206,7 @@ public class Main {
 
         /* set up kafka consumer */
         Properties consumerProps = getCommonProps();
-        consumerProps.put("group.id", sharedConsumerGroups[0]); // use a shared consumer group, otherwise all instances will respond to all messages
+        consumerProps.put("group.id", privateConsumerGroups[0]); // use a shared consumer group, otherwise all instances will respond to all messages
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, KeyEnvelopeDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DataEnvelopeDeserializer.class.getName());
         consumerProps.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_KEY_TYPE, KeyEnvelope.class.getName());
