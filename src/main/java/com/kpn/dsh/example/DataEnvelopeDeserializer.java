@@ -1,6 +1,8 @@
 package com.kpn.dsh.example;
 
 import java.util.Map;
+
+import com.kpn.dsh.messages.common.Envelope;
 import com.kpn.dsh.messages.common.Envelope.DataEnvelope;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -17,7 +19,9 @@ public class DataEnvelopeDeserializer implements Deserializer<DataEnvelope> {
         if (null == data) return null;
 
         try {
-            return DataEnvelope.parseFrom(data);
+            Envelope.DataEnvelope dataEnvelope = Envelope.DataEnvelope.parseFrom(data);
+            System.err.println("deserialize dataEnvelope data");
+            return  dataEnvelope;
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
             System.out.println("Got illegal protobuf message on "+topic);
             return null;

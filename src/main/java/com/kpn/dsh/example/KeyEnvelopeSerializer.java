@@ -63,9 +63,6 @@ public class KeyEnvelopeSerializer extends AbstractKafkaProtobufSerializer<KeyEn
     public void close() {}
 
     public byte[] serialize(String topic, KeyEnvelope key) {
-        System.err.println(String.format("Schema registry is: %s",schemaRegistry.toString()));
-        System.err.println(String.format("Schema registry is: %s",schemaRegistry.toString()));
-
         if (this.schemaRegistry == null) {
             throw new InvalidConfigurationException("SchemaRegistryClient not found. You need to configure the serializer or use serializer constructor with SchemaRegistryClient.");
         } else if (key == null) {
@@ -73,7 +70,6 @@ public class KeyEnvelopeSerializer extends AbstractKafkaProtobufSerializer<KeyEn
         } else {
             ProtobufSchema schema = this.schemaCache.get(key.getDescriptorForType());
             if (schema == null) {
-                System.err.println(String.format("Schema is null"));
                 schema = ProtobufSchemaUtils.getSchema(key);
 
                 try {
@@ -88,10 +84,7 @@ public class KeyEnvelopeSerializer extends AbstractKafkaProtobufSerializer<KeyEn
                     throw new SerializationException("Error serializing Protobuf message", var6);
                 }
 
-                System.err.println(String.format("Adding schema to cache"));
                 this.schemaCache.put(key.getDescriptorForType(), schema);
-            } else {
-                System.err.println(String.format("Schema is: %s", schema.canonicalString()));
             }
             return this.serializeImpl(this.getSubjectName(topic, this.isKey, key, schema), topic, this.isKey, key, schema);
         }

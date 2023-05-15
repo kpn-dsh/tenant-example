@@ -141,7 +141,7 @@ public class Main {
                                 ? null
                                 : wrappedValue.getPayload().toStringUtf8();
 
-        System.out.println("Received command: " + command);
+        System.err.println("Received command: " + command);
 
         splitKey[0] = "response";
         KeyEnvelope responseKey = wrapKey(String.join("/", splitKey));
@@ -263,9 +263,17 @@ public class Main {
             consumer.subscribe(inputTopicPattern, new NoopRebalanceListener());
 
             while (true) {
-                ConsumerRecords<KeyEnvelope, DataEnvelope> records = consumer.poll(Long.MAX_VALUE);
-                for (ConsumerRecord<KeyEnvelope, DataEnvelope> record : records) {
-                    processMessage(record);
+                try {
+//                    System.err.println("Polling messages");
+                    ConsumerRecords<KeyEnvelope, DataEnvelope> records = consumer.poll(100);
+//                    ConsumerRecords<KeyEnvelope, DataEnvelope> records = consumer.poll(Long.MAX_VALUE);
+                    for (ConsumerRecord<KeyEnvelope, DataEnvelope> record : records) {
+                        processMessage(record);
+                    }
+                    if(records.count() > 0)
+                        System.err.println("Polling messages: " + records.count());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         } catch (WakeupException e) {

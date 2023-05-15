@@ -16,7 +16,9 @@ public class KeyEnvelopeDeserializer implements Deserializer<KeyEnvelope> {
         if (data == null) return null;
 
         try {
-            return KeyEnvelope.parseFrom(data);
+            KeyEnvelope keyEnvelope = KeyEnvelope.parseFrom(data);
+            System.err.println("deserialize keyEnvelope key: " + keyEnvelope.getKey());
+            return  keyEnvelope;
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
             System.out.println("Got illegal protobuf message on "+topic);
             return null;
