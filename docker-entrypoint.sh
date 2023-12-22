@@ -11,4 +11,4 @@ export PKI_KEYSTORE
 export PKI_STOREPASS
 export PKI_KEYPASS
 
-exec /usr/bin/java -jar /usr/share/tenant-example/tenant-example.jar
+exec /opt/java/openjdk/bin/java -jar /usr/share/tenant-example/tenant-example.jar
