@@ -12,17 +12,24 @@ set -eux
 # PKI_CONFIG_DIR: Directory to store the jks with the certificates: NEEDS TO BE
 # SET BEFORE CALLING THIS SCRIPT
 
-# DSH_KAFKA_CONFIG_ENDPOINT: DNS of the PKI: automatically set by mesos
+# DSH_KAFKA_CONFIG_ENDPOINT: DNS of the PKI: automatically set by DSH
 
 # DSH_SECRET_TOKEN: token that can be used to identify against the PKI:
-# automatically set by mesos
+# automatically set by DSH
 
 # DSH_CONTAINER_DNS_NAME: the internal DNS name of this container, typically
 # <appname>.<tenant>.marathon.mesos. Note that this is the same value for _all_
 # instances of a multi-instance app.
 
 # MESOS_TASK_ID: passed in by mesos to identify this container: automatically
-# set by mesos
+# set by DSH
+
+# **NOTE**
+# The container dns suffix (.marathon.mesos) and the MESOS_TASK_ID environment variable
+# are compatibility artifacts. DSH was originally implemented on top of DC/OS,
+# but has since moved to Kubernetes. For backward compatibility, the container
+# environment still looks like it is run inside a Marathon+Mesos stack. This compatibility
+# layer will be phased out over time.
 
 if [ -z "${PKI_CONFIG_DIR:-}" ]
 then
@@ -103,7 +110,7 @@ PKI_KEYPASS=${PKI_PASS} #left for backwards compat
 PKI_TRUSTSTORE=${PKI_CONFIG_DIR}/truststore.jks
 PKI_KEYSTORE=${PKI_CONFIG_DIR}/keystore.jks
 
-# Make sure jks does not yet exists
+# Make sure jks does not yet exist
 rm -f ${PKI_KEYSTORE} ${PKI_TRUSTSTORE}
 
 # In the trust store we import the ca certificate
@@ -133,7 +140,7 @@ keytool -importcert -alias client -file ${PKI_CONFIG_DIR}/client.crt -storepass 
 # we need to jump through some hoops to get to the client cert and key in a format that is convenient for curl
 # PKCS12 doesn't allow different password for store and key hence the store password is used for the keys.
 keytool -importkeystore -srckeystore ${PKI_KEYSTORE} -destkeystore ${PKI_CONFIG_DIR}/client.pfx -deststoretype PKCS12 -srcalias client -srcstorepass ${PKI_PASS} -srckeypass ${PKI_PASS} -deststorepass ${PKI_PASS} -destkeypass ${PKI_PASS}
-openssl pkcs12 -in ${PKI_CONFIG_DIR}/client.pfx -out ${PKI_CONFIG_DIR}/client.p12 -passin pass:${PKI_PASS} -passout pass:${PKI_PASS} 
+openssl pkcs12 -in ${PKI_CONFIG_DIR}/client.pfx -out ${PKI_CONFIG_DIR}/client.p12 -passin pass:${PKI_PASS} -nodes -legacy
 
 # Fetch tenant and application specific configuration from the PKI including:
 # streams, kafka consumergroup ids and bootstrap servers

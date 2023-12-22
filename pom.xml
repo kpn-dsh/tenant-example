@@ -3,13 +3,17 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.kpn-dsh</groupId>
   <artifactId>tenant-example</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.1.0</version>
   <properties>
+    <!-- set the tenant name here -->
     <tenant>dshdemo1</tenant>
+    <!-- set the tenant's assigned userid here -->
+    <userid>1024</userid>
+
     <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
     <protobuf.version>3.16.3</protobuf.version>
-    <org.slf4j.version>1.7.25</org.slf4j.version>
-    <ch.qos.logback.version>1.2.2</ch.qos.logback.version>
+    <org.slf4j.version>2.0.9</org.slf4j.version>
+    <ch.qos.logback.version>1.4.14</ch.qos.logback.version>
   </properties>
   <dependencies>
     <!-- Protobuf -->
@@ -22,7 +26,7 @@
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
-      <version>0.10.2.2</version>
+      <version>3.6.1</version>
     </dependency>
     <!-- Logging -->
     <dependency>
@@ -41,9 +45,9 @@
       <version>${ch.qos.logback.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.uber.jaeger</groupId>
-      <artifactId>jaeger-core</artifactId>
-      <version>0.26.0</version>
+      <groupId>io.jaegertracing</groupId>
+      <artifactId>jaeger-client</artifactId>
+      <version>1.8.1</version>
     </dependency>
   </dependencies>
   <build>
@@ -180,10 +184,11 @@
           </execution>
         </executions>
         <configuration>
-          <repository>dataserviceshub-docker-${tenant}.jfrog.io/tenant-example</repository>
+          <repository>registry.cp.kpn-dsh.com/${tenant}/tenant-example</repository>
           <tag>${project.version}</tag>
           <buildArgs>
             <IMAGE_VERSION>${project.version}</IMAGE_VERSION>
+            <UID>${userid}</UID>
           </buildArgs>
         </configuration>
       </plugin>
